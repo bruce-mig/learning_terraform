@@ -1,4 +1,4 @@
-module "qa" {
+module "prod" {
   source = "../modules/blog"
 
   environment = {

@@ -43,7 +43,8 @@ module "autoscaling" {
   max_size = var.asg_max_size
 
   vpc_zone_identifier = module.blog_vpc.public_subnets
-  target_group_arns   = module.blog_alb.target_group_arns
+  # target_group_arns   = module.blog_alb.target_group_arns
+  target_group_arns   = module.blog_alb.target_groups.arn
   security_groups     = [ module.blog_sg.security_group_id ]
   
   image_id      = data.aws_ami.app_ami.id
@@ -97,6 +98,15 @@ module "blog_alb" {
     ex-http-https-redirect = {
       port     = 80
       protocol = "HTTP"
+    }
+    ex-https = {
+      port            = 443
+      protocol        = "HTTPS"
+      certificate_arn = "arn:aws:iam::123456789012:server-certificate/test_cert-123456789012"
+
+      forward = {
+        target_group_key = "ex-instance"
+      }
     }
   }
 

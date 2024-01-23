@@ -50,36 +50,68 @@ module "autoscaling" {
   instance_type = var.instance_type
 }
 
+# module "blog_alb" {
+#   source = "terraform-aws-modules/alb/aws"
+
+#   name = "${var.environment.name}-blog-alb"
+
+#   load_balancer_type = "application"
+
+#   vpc_id          = module.blog_vpc.vpc_id
+#   subnets         = module.blog_vpc.public_subnets
+#   security_groups = [ module.blog_sg.security_group_id ]
+
+#   target_groups = [
+#     {
+#       name_prefix         = "${var.environment.name}-"
+#       background_protocol = "HTTP"
+#       backend_port        = 80
+#       target_type         = "instance"
+#     }
+#   ]
+
+#   http_tcp_listeners = [
+#     {
+#       port               = 80
+#       protocol           = "HTTP"
+#       target_group_index = 0
+#     }
+#   ]
+
+#   tags = {
+#     Environment = var.environment.name
+#   }
+# }
+
 module "blog_alb" {
   source = "terraform-aws-modules/alb/aws"
 
-  name = "${var.environment.name}-blog-alb"
+  name    = "${var.environment.name}-blog-alb"
+  vpc_id  = module.blog_vpc.vpc_id
+  subnets = module.blog_vpc.public_subnets
 
-  load_balancer_type = "application"
-
-  vpc_id          = module.blog_vpc.vpc_id
-  subnets         = module.blog_vpc.public_subnets
+  # Security Group
   security_groups = [ module.blog_sg.security_group_id ]
 
-  target_groups = [
-    {
-      name_prefix         = "${var.environment.name}-"
-      background_protocol = "HTTP"
-      backend_port        = 80
-      target_type         = "instance"
+  listeners = {
+    ex-http-https-redirect = {
+      port     = 80
+      protocol = "HTTP"
     }
-  ]
+  }
 
-  http_tcp_listeners = [
-    {
-      port               = 80
-      protocol           = "HTTP"
-      target_group_index = 0
+  target_groups = {
+    ex-instance = {
+      name_prefix      = "h1"
+      protocol         = "HTTP"
+      port             = 80
+      target_type      = "instance"
     }
-  ]
+  }
 
   tags = {
-    Environment = var.environment.name
+    Environment = "Development"
+    Project     = "Example"
   }
 }
 
